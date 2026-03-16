@@ -1,10 +1,7 @@
-import { useState } from 'react'
+import Login from "./pages/login";
+
 function App() {
-  return (
-    <div>
-      <h1>PulseTrack</h1>
-    </div>
-  )
+  return <Login />;
 }
 
 export default App;
