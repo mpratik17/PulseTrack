@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "../styles/login.css";
+import logo from "../assets/logo.png";
 
 function Login() {
 
@@ -115,7 +116,9 @@ function Login() {
 
       {/* LOGIN CARD */}
 
-      <div className="login-card">
+        <div className="login-card">
+
+        <img src={logo} className="logo" />
 
         <h1>PulseTrack</h1>
         <p>Monitor your heart health</p>
