@@ -155,30 +155,31 @@ color:#888;
 
 /* BUTTON */
 
-.main-btn{
-
-width:100%;
-margin-top:18px;
-
-padding:12px;
-
-background:#00ff9c;
-color: #070707;
-border:none;
-
-border-radius:6px;
-
-font-size:15px;
-
-cursor:pointer;
-
+.main-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 9px;
+  background: #00ff9c;
+  color: #070707;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  
+  box-shadow: 0 6px 0 #00c77a;
+  transition: all 0.1s ease;
 }
 
-.main-btn:hover{
 
-background:#00d683;
-
+.main-btn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #00c77a;
 }
+
+.main-btn:hover {
+  background: #00e68a;
+}
+
 
 
 /* LINKS */

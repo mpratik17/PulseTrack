@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "../styles/login.css";
 import logo from "../assets/logo.png";
+import { useNavigate } from "react-router-dom";
 
 //  Firebase imports
 import { auth } from "../firebase/config";
@@ -14,6 +15,7 @@ function Login() {
   //  states
   const [email,setEmail] = useState("");
   const [password,setPassword] = useState("");
+  const navigate = useNavigate();
 
   //  LOGIN FUNCTION
   const handleLogin = async (e) => {
@@ -28,6 +30,7 @@ function Login() {
 
       alert("Login successful");
       console.log(user.user);
+       navigate("/dashboard");
 
     } catch (err) {
       alert(err.message);
@@ -152,7 +155,7 @@ function Login() {
             </span>
 
             <span className="forgot" onClick={handleForgotPassword}>
-              Forgot Password?
+              Forgot password?
             </span>
           </form>
         )}
