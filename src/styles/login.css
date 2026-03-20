@@ -186,9 +186,9 @@ color:#888;
 
 .switch{
 
-display:block;
+display:inline-block;
 margin-top:15px;
-
+padding: 6px 12px;
 color:#00ff9c;
 
 cursor:pointer;
@@ -227,3 +227,5 @@ opacity:1;
 transform:translateY(0);
 }
 }
+
+
