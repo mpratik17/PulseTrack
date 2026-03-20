@@ -28,8 +28,8 @@ function Login() {
         password
       );
 
-      alert("Login successful");
-      console.log(user.user);
+      // alert("Login successful");
+      // console.log(user.user);
        navigate("/dashboard");
 
     } catch (err) {
@@ -163,7 +163,7 @@ function Login() {
         {/*  SIGNUP FORM */}
         {mode==="register" && (
           <form onSubmit={handleSignup}>
-
+          Create Your Account
             <input
               type="email"
               placeholder="Email"
@@ -180,12 +180,13 @@ function Login() {
               Create Account
             </button>
 
-            <span
+            <div
               className="switch"
               onClick={()=>setMode("login")}
             >
               Back to Login
-            </span>
+              </div>
+           
 
           </form>
         )}
