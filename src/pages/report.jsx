@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/report.css";
+import emailjs from "emailjs-com";
 
 function Report() {
   const navigate = useNavigate();
@@ -30,21 +31,61 @@ function Report() {
     : 0;
 
   const getClassification = (sys, dia) => {
-    if (sys <= 120 && dia <= 80) return "Normal";
-    if (sys < 130 && dia < 80) return "Elevated";
-    if (sys < 140 || dia < 90) return "Hypertension Stage 1";
-    return "Hypertension Stage 2";
+  
+  if (sys >= 180 || dia >= 120) return "Hypertensive Crisis 🚨";
+
+  if (sys >= 140 || dia >= 90) return "Hypertension Stage 2";
+
+  if ((sys >= 130 && sys <= 139) || (dia > 80 && dia <= 89))
+    return "Hypertension Stage 1";
+
+  if (sys > 120 && sys <= 129 && dia < 80)
+    return "Elevated";
+
+  if(sys <= 120 && dia <= 80)
+  return "Normal";
+
   };
 
   const classification = getClassification(avgSys, avgDia);
 
-  const handleSendEmail = () => {
-    if (!email) {
-      alert("Please enter your email");
-      return;
-    }
-    alert(`📧 Report sent to ${email}!`);
+ const handleSendEmail = () => {
+  if (!email) {
+    alert("Please enter your email");
+    return;
+  }
+
+  const reportText = `
+PULSETRACK REPORT
+
+Average BP: ${avgSys}/${avgDia} mmHg
+Classification: ${classification}
+Total Readings: ${weekReadings.length}
+
+Stay healthy 💙
+`;
+
+  const templateParams = {
+    to_email: email,
+    message: reportText,
   };
+
+  emailjs
+    .send(
+      "service_a252eqh",    
+      "template_dkfgkhf",    
+      templateParams,
+      "1CfKwh3SoJPZl8s7z"     
+    )
+    .then(() => {
+      alert(`📧 Report sent to ${email}!`);
+      setEmail("");
+    })
+    .catch((error) => {
+      console.log(error);
+      alert("❌ Failed to send email");
+    });
+};
 
   const handleDownload = () => {
     const reportText = `
@@ -194,15 +235,15 @@ Consult a healthcare professional for medical advice.
             onChange={(e) => setEmail(e.target.value)}
           />
           <div className="action-buttons">
-            <button onClick={handleSendEmail}>Send to Email</button>
-            <button onClick={handleDownload}>Download Report</button>
+            <button onClick={handleSendEmail}>Send to Email 📩</button>
+            <button onClick={handleDownload}> ⬇️ Download Report</button>
           </div>
         </div>
       </div>
 
       {/* Disclaimer */}
       <div className="disclaimer">
-        ⚠️ Disclaimer: This report is for informational purposes only.
+        ⚠️❗ Disclaimer: This report is for informational purposes only.
         Always consult a healthcare professional for medical advice.
       </div>
     </div>

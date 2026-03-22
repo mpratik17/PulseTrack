@@ -8,9 +8,9 @@
 }
 
 .back-btn {
-  background: rgba(255, 255, 255, 0.1);
+  background: #00ff9c;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  color: white;
+  color: rgb(12, 1, 1);
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -20,7 +20,7 @@
 }
 
 .back-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
+  background: #09c97c;
 }
 
 .report-header {
