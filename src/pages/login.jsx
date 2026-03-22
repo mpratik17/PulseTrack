@@ -177,7 +177,7 @@ function Login() {
             />
 
             <button className="main-btn" type="submit">
-              Create Account
+              Sign Up
             </button>
 
             <div
