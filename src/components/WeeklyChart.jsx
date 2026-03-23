@@ -23,10 +23,21 @@ function WeeklyChart({ readings }) {
     : 0;
 
   const getBPStatus = (sys, dia) => {
-    if (sys < 120 && dia < 80) return { label: "Normal", color: "#00ff9c" };
-    if (sys < 130 && dia < 80) return { label: "Elevated", color: "#ffd700" };
-    if (sys < 140 || dia < 90) return { label: "Stage 1", color: "#ff9500" };
+    if (sys >= 180 || dia >= 120) {
+    return { label: "Crisis 🚨", color: "#8b0000" };
+  }
+  if (sys >= 140 || dia >= 90) {
     return { label: "Stage 2", color: "#ff4444" };
+  }
+  if ((sys >= 130 && sys <= 139) || (dia >80 && dia <= 89)) {
+    return { label: "Stage 1", color: "#ff9500" };
+  }
+  if (sys > 120 && sys <= 129 && dia <= 80) {
+    return { label: "Elevated", color: "#ffd700" };
+  }
+  if(sys <= 120 && dia <= 80) 
+  return { label: "Normal", color: "#00ff9c" };
+return { label: "Unknown", color: "#ccc" };
   };
 
   const status = avgSystolic > 0 ? getBPStatus(avgSystolic, avgDiastolic) : null;
