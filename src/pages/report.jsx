@@ -56,9 +56,8 @@ function Report() {
   }
 
   const reportText = `
-PULSETRACK REPORT
-
-Average BP: ${avgSys}/${avgDia} mmHg
+PULSETRACK REPORT :-
+Average BP: ${avgSys}/${avgDia}mmHg
 Classification: ${classification}
 Total Readings: ${weekReadings.length}
 
