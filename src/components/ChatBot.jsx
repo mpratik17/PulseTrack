@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "../styles/chatbot.css";
 
 function ChatBot() {
@@ -10,50 +10,53 @@ function ChatBot() {
     },
   ]);
   const [input, setInput] = useState("");
+  const messagesEndRef = useRef(null);
 
-  const getBotResponse = (msg) => {
-    const lower = msg.toLowerCase();
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
-    if (lower.includes("normal")) {
-      return "Normal BP is less than 120/80 mmHg. Keep it up! 💚";
-    }
-    if (lower.includes("high") || lower.includes("hypertension")) {
-      return "High BP (130+/80+) needs attention. Consult your doctor if readings are consistently high. 🩺";
-    }
-    if (lower.includes("low")) {
-      return "Low BP (below 90/60) can cause dizziness. Stay hydrated and consult a doctor if symptoms persist.";
-    }
-    if (lower.includes("food") || lower.includes("eat")) {
-      return "Eat: leafy greens, berries, oats, fish, bananas. Avoid: salt, processed foods, alcohol. 🥗";
-    }
-    if (lower.includes("exercise")) {
-      return "Regular exercise (30 min/day) can lower BP by 5-8 mmHg. Start with walking! 🚶‍♂️";
-    }
-    if (lower.includes("stress")) {
-      return "Try meditation, deep breathing, yoga. Stress management helps lower BP! 🧘";
-    }
-    if (lower.includes("doctor")) {
-      return "See a doctor if BP is 130/80+ consistently, or 180/120+ immediately (emergency). 🚨";
-    }
-    if (lower.includes("thank")) {
-      return "You're welcome! Stay healthy! 💙";
-    }
-
-    return "I can help with: normal BP, high/low BP, diet, exercise, stress, when to see a doctor. What would you like to know?";
-  };
-
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim()) return;
 
     const userMsg = { text: input, isBot: false };
     setMessages((prev) => [...prev, userMsg]);
 
-    setTimeout(() => {
-      const botMsg = { text: getBotResponse(input), isBot: true };
-      setMessages((prev) => [...prev, botMsg]);
-    }, 500);
-
+    const currentInput = input;
     setInput("");
+
+    // ⏳ typing message
+    const loadingMsg = { text: "Typing...", isBot: true };
+    setMessages((prev) => [...prev, loadingMsg]);
+
+    try {
+      const res = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message: currentInput }),
+      });
+
+      const data = await res.json();
+
+      const delay = Math.min(2000, data.reply.length * 20);
+
+      setTimeout(() => {
+        setMessages((prev) => prev.slice(0, -1)); // remove typing
+
+        const botMsg = { text: data.reply, isBot: true };
+        setMessages((prev) => [...prev, botMsg]);
+      }, delay);
+
+    } catch (error) {
+      setTimeout(() => {
+        setMessages((prev) => prev.slice(0, -1));
+
+        const botMsg = { text: "⚠️ Error connecting to server", isBot: true };
+        setMessages((prev) => [...prev, botMsg]);
+      }, 1000);
+    }
   };
 
   return (
@@ -74,17 +77,24 @@ function ChatBot() {
           <div className="chat-messages">
             {messages.map((msg, idx) => (
               <div key={idx} className={`message ${msg.isBot ? "bot" : "user"}`}>
-                {msg.text}
+                {msg.text === "Typing..." ? (
+                  <div className="typing">
+                  Typing...
+                  </div>
+                ) : (
+                  msg.text
+                )}
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
 
           <div className="chat-input">
             <input
-              placeholder="Ask about BP..."
+              placeholder="Ask Anything :)"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === "Enter" && handleSend()}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
             />
             <button onClick={handleSend}>➤</button>
           </div>
