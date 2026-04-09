@@ -2,11 +2,16 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/report.css";
 import emailjs from "emailjs-com";
+import { jsPDF } from "jspdf";
+import BPGraph from "../components/graph";
 
 function Report() {
   const navigate = useNavigate();
   const [readings, setReadings] = useState([]);
   const [email, setEmail] = useState("");
+  const [showRec, setShowRec] = useState(false);
+  const [loadingRec, setLoadingRec] = useState(false);
+  const [step, setStep] = useState(0);
 
   useEffect(() => {
     const stored = localStorage.getItem("bp_readings");
@@ -47,7 +52,7 @@ function Report() {
 
   };
 
-  const classification = getClassification(avgSys, avgDia);
+ const classification = getClassification(avgSys, avgDia);
 
  const handleSendEmail = () => {
   if (!email) {
@@ -56,13 +61,20 @@ function Report() {
   }
 
   const reportText = `
-PULSETRACK REPORT :-
-Average BP: ${avgSys}/${avgDia}mmHg
-Classification: ${classification}
-Total Readings: ${weekReadings.length}
+  PULSETRACK REPORT
 
-Stay healthy 💙
-`;
+  Average BP: ${avgSys}/${avgDia} mmHg
+  Classification: ${classification}
+
+  Insight:
+  ${insight}
+
+  Foods: ${rec.foods.join(", ")}
+  Avoid: ${rec.avoid.join(", ")}
+  Lifestyle: ${rec.lifestyle.join(", ")}
+
+  Stay healthy 💙
+  `;
 
   const templateParams = {
     to_email: email,
@@ -71,10 +83,10 @@ Stay healthy 💙
 
   emailjs
     .send(
-      "service_a252eqh",    
-      "template_dkfgkhf",    
-      templateParams,
-      "1CfKwh3SoJPZl8s7z"     
+       import.meta.env.VITE_EMAIL_SERVICE,
+        import.meta.env.VITE_EMAIL_TEMPLATE,
+        templateParams,
+        import.meta.env.VITE_EMAIL_KEY    
     )
     .then(() => {
       alert(`📧 Report sent to ${email}!`);
@@ -87,47 +99,27 @@ Stay healthy 💙
 };
 
   const handleDownload = () => {
-    const reportText = `
-PULSETRACK REPORT
-Generated: ${new Date().toLocaleDateString()}
+  const doc = new jsPDF();
 
-SUMMARY (Last 7 Days)
-Total Readings: ${weekReadings.length}
-Average BP: ${avgSys}/${avgDia} mmHg
-Classification: ${classification}
+  doc.text("PULSETRACK REPORT", 20, 20);
+  doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 30);
+  doc.text(`Average BP: ${avgSys}/${avgDia}`, 20, 40);
+  doc.text(`Classification: ${classification}`, 20, 50);
 
-FOODS TO EAT:
-• Leafy greens (spinach, kale)
-• Berries (blueberries, strawberries)
-• Oats and whole grains
-• Fatty fish (salmon, mackerel)
-• Bananas (rich in potassium)
+  doc.text("Insight:", 20, 65);
+  doc.text(insight, 20, 75);
 
-FOODS TO AVOID:
-• High sodium foods
-• Processed meats
-• Sugary beverages
-• Alcohol (limit intake)
+  doc.text("Foods:", 20, 95);
+  doc.text(rec.foods.join(", "), 20, 105);
 
-LIFESTYLE TIPS:
-• Exercise 30 min daily
-• Reduce sodium intake
-• Manage stress
-• Get adequate sleep (7-9 hours)
+  doc.text("Avoid:", 20, 120);
+  doc.text(rec.avoid.join(", "), 20, 130);
 
-Disclaimer: This is for informational purposes only.
-Consult a healthcare professional for medical advice.
-    `;
+  doc.text("Lifestyle:", 20, 145);
+  doc.text(rec.lifestyle.join(", "), 20, 155);
 
-    const blob = new Blob([reportText], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `PulseTrack_Report_${new Date().toISOString().split("T")[0]}.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-    alert("📥 Report downloaded!");
-  };
+  doc.save("PulseTrack_Report.pdf");
+};
 
   if (weekReadings.length === 0) {
     return (
@@ -143,6 +135,72 @@ Consult a healthcare professional for medical advice.
       </div>
     );
   }
+  // 🔥 Dynamic Recommendations
+const getRecommendations = (classification) => {
+  switch (classification) {
+    case "Normal":
+      return {
+        foods: ["Continue balanced diet", "Fruits & vegetables", "Stay hydrated"],
+        avoid: ["Excess junk food"],
+        lifestyle: ["Maintain routine", "Light exercise", "Good sleep"],
+      };
+
+    case "Elevated":
+      return {
+        foods: ["Leafy greens", "Oats", "Bananas"],
+        avoid: ["Reduce salt", "Processed food"],
+        lifestyle: ["Daily walking", "Reduce stress"],
+      };
+
+    case "Hypertension Stage 1":
+      return {
+        foods: ["Low sodium diet", "Fruits", "Whole grains"],
+        avoid: ["Salt", "Sugary drinks"],
+        lifestyle: ["Exercise 30 min", "Meditation", "Weight control"],
+      };
+
+    case "Hypertension Stage 2":
+      return {
+        foods: ["Strict low salt diet", "Vegetables", "Potassium rich foods"],
+        avoid: ["High sodium", "Alcohol", "Fast food"],
+        lifestyle: ["Regular monitoring", "Consult doctor", "Stress control"],
+      };
+
+    case "Hypertensive Crisis 🚨":
+      return {
+        foods: ["Emergency care needed"],
+        avoid: ["Do NOT ignore symptoms"],
+        lifestyle: ["🚨 Visit hospital immediately"],
+      };
+
+    default:
+      return { foods: [], avoid: [], lifestyle: [] };
+  }
+};
+
+// 🔥 Insight
+const getInsight = () => {
+
+  if (avgSys >= 180 || avgDia >= 120)
+    return "🚨 Hypertensive Crisis! Your BP is dangerously high. Seek immediate medical help.";
+
+  if (avgSys >= 140 || avgDia >= 90)
+    return "⚠️ Your BP falls under Stage 2 Hypertension. Strong lifestyle changes and medical consultation are recommended.";
+
+  if ((avgSys >= 130 && avgSys <= 139) || (avgDia > 80 && avgDia <= 89))
+    return "⚠️ Your BP is in Stage 1 Hypertension. Monitor regularly and improve diet, exercise, and stress levels.";
+
+  if (avgSys > 120 && avgSys <= 129 && avgDia < 80)
+    return "🙂 Your BP is slightly elevated. It’s a warning stage — maintain a healthy lifestyle.";
+
+  if (avgSys <= 120 && avgDia <= 80)
+    return "✅ Your BP is normal. Keep maintaining your healthy routine!";
+
+  return "No sufficient data available.";
+};
+
+const rec = getRecommendations(classification);
+const insight = getInsight();
 
   return (
     <div className="report-container">
@@ -172,6 +230,8 @@ Consult a healthcare professional for medical advice.
         </div>
       </div>
 
+      <BPGraph readings={weekReadings} />
+
       {/* Understanding BP */}
       <div className="report-card">
         <h2>🫀 What is Blood Pressure?</h2>
@@ -187,41 +247,64 @@ Consult a healthcare professional for medical advice.
       </div>
 
       {/* Recommendations */}
-      <div className="report-card">
-        <h2>💡 Recommendations</h2>
+   <div className="report-card">
+  <h2>💡 Recommendations</h2>
 
-        <div className="rec-section">
+  {!showRec ? (
+    <div className="generate-box">
+      <button
+        onClick={() => {
+          setLoadingRec(true);
+
+          setTimeout(() => {
+            setShowRec(true);
+            setLoadingRec(false);
+
+            setTimeout(() => setStep(1), 300);
+            setTimeout(() => setStep(2), 800);
+            setTimeout(() => setStep(3), 1300);
+            setTimeout(() => setStep(4), 1800);
+
+          }, 1200);
+        }}
+        className="generate-btn"
+      >
+        {loadingRec ? "⏳ Generating..." : "⚡ Generate"}
+      </button>
+    </div>
+  ) : (
+    <>
+      {step >= 1 && <p className="insight">{insight}</p>}
+
+      {step >= 2 && (
+        <div className="rec-section fade-in">
           <h3>✅ Foods to Eat</h3>
           <ul>
-            <li>Leafy greens (spinach, kale)</li>
-            <li>Berries (blueberries, strawberries)</li>
-            <li>Oats and whole grains</li>
-            <li>Fatty fish (salmon, mackerel)</li>
-            <li>Bananas (rich in potassium)</li>
+            {rec.foods.map((item, i) => <li key={i}>{item}</li>)}
           </ul>
         </div>
+      )}
 
-        <div className="rec-section">
+      {step >= 3 && (
+        <div className="rec-section fade-in">
           <h3>❌ Foods to Avoid</h3>
           <ul>
-            <li>High sodium foods ( 2,300 mg/day)</li>
-            <li>Processed meats and deli items</li>
-            <li>Sugary beverages</li>
-            <li>Alcohol (limit consumption)</li>
+            {rec.avoid.map((item, i) => <li key={i}>{item}</li>)}
           </ul>
         </div>
+      )}
 
-        <div className="rec-section">
+      {step >= 4 && (
+        <div className="rec-section fade-in">
           <h3>🏃‍♂️ Lifestyle Changes</h3>
           <ul>
-            <li>Exercise 30 minutes daily</li>
-            <li>Reduce sodium intake</li>
-            <li>Manage stress (meditation, yoga)</li>
-            <li>Get adequate sleep (7-9 hours)</li>
-            <li>Quit smoking</li>
+            {rec.lifestyle.map((item, i) => <li key={i}>{item}</li>)}
           </ul>
         </div>
-      </div>
+      )}
+    </>
+  )}
+</div>
 
       {/* Email/Download */}
       <div className="report-card">

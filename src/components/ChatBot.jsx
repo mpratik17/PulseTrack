@@ -25,7 +25,6 @@ function ChatBot() {
     const currentInput = input;
     setInput("");
 
-    // ⏳ typing message
     const loadingMsg = { text: "Typing...", isBot: true };
     setMessages((prev) => [...prev, loadingMsg]);
 
